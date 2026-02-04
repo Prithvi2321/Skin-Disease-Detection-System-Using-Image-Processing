@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Common Skin Diseases - DermaScan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="{% static 'css/js/images/logo.png' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
+            z-index: -1;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            transition: all 0.4s ease;
+            z-index: 50;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .nav-link {
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 70%;
+        }
+        .disease-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+        }
+        .disease-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        .disease-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .disease-card:hover .disease-image {
+            transform: scale(1.05);
+        }
+        .info-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .info-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        .symptom-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo/Brand -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'home' %}" class="flex items-center group">
+                        <img src="{% static 'css/js/images/logo.png' %}" alt="Logo" class="h-10 mr-3 transition-transform duration-300 group-hover:rotate-12">
+                        <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            DermaScan
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{% url 'home' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        Home
+                    </a>
+                    <a href="{% url 'common_diseases' %}" class="nav-link text-blue-300 transition-colors duration-300">
+                        Common Diseases
+                    </a>
+                    <a href="{% url 'about' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        About
+                    </a>
+                    <a href="{% url 'contact' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        Contact
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="mobile-menu md:hidden bg-gray-900 bg-opacity-90">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="{% url 'home' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">Home</a>
+                <a href="{% url 'common_diseases' %}" class="block px-3 py-3 rounded-md text-base font-medium text-blue-400 bg-gray-800">Common Diseases</a>
+                <a href="{% url 'about' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">About</a>
+                <a href="{% url 'contact' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Chart Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Skin Disease Statistics</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Prevalence of common skin conditions based on our detection data
+                </p>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="diseaseChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Diseases Section -->
+    <section class="py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Common Skin Diseases</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Learn about symptoms, precautions, and treatments for various skin conditions
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for disease in diseases %}
+                <div class="disease-card">
+                    <img src="{% static '' %}{{ disease.image }}" alt="{{ disease.name }}" class="disease-image">
+                    <h3 class="text-2xl font-semibold text-white mb-3">{{ disease.name }}</h3>
+                    <p class="text-gray-300 mb-4">{{ disease.description }}</p>
+                    
+                    <div class="mb-4">
+                        <h4 class="text-white text-lg mb-2">Common Symptoms:</h4>
+                        {% for symptom in disease.symptoms %}
+                        <span class="symptom-badge">{{ symptom }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <a href="{{ disease.link }}" target="_blank" class="info-btn inline-block">
+                        <i class="fas fa-info-circle mr-2"></i> Learn More
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            mobileMenu.classList.toggle('active');
+            
+            // Toggle icon
+            if (!expanded) {
+                this.innerHTML = `
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                `;
+            } else {
+                this.innerHTML = `
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                `;
+            }
+        });
+
+        // Chart Configuration
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctx = document.getElementById("diseaseChart").getContext("2d");
+            
+            // Parse disease counts from Django template
+            var diseaseCounts = JSON.parse('{{ disease_counts|safe }}');
+            
+            // Prepare data for Chart.js
+            var diseaseData = {
+                labels: Object.keys(diseaseCounts),
+                datasets: [{
+                    label: "Detection Frequency",
+                    data: Object.values(diseaseCounts),
+                    backgroundColor: [
+                        "rgba(255, 99, 132, 0.7)",
+                        "rgba(54, 162, 235, 0.7)",
+                        "rgba(255, 206, 86, 0.7)",
+                        "rgba(75, 192, 192, 0.7)",
+                        "rgba(153, 102, 255, 0.7)",
+                        "rgba(255, 159, 64, 0.7)"
+                    ],
+                    borderColor: "rgba(255, 255, 255, 1)",
+                    borderWidth: 2
+                }]
+            };
+            
+            // Create chart with animation
+            var diseaseChart = new Chart(ctx, {
+                type: "bar",
+                data: diseaseData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { 
+                            labels: { 
+                                color: "white",
+                                font: {
+                                    size: 14
+                                }
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white'
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            ticks: { 
+                                color: "white",
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: { 
+                            ticks: { 
+                                color: "white",
+                                font: {
+                                    size: 12
+                                }
+                            }, 
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Intersection Observer for scroll animation
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        diseaseChart.update();
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            observer.observe(document.getElementById("diseaseChart"));
+        });
+    </script>
+</body>
+</html>

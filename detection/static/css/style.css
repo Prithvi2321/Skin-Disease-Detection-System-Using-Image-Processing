@@ -1,0 +1,204 @@
+/* Background Video */
+#bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -1;
+}
+
+/* Overlay for better text visibility */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}
+* Logo Styling */
+.logo {
+    width: 50px;  /* Adjust size as needed */
+    height: auto;
+    border: 2px solid white;  /* White border */
+    border-radius: 10px; /* Optional: rounded corners */
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effect */
+.logo:hover {
+    border-color: #00d4ff;  /* Change border color on hover */
+    transform: scale(1.1);  /* Slight zoom-in effect */
+}
+
+/* Navbar 
+.navbar {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+}*/
+/* Navbar Styling */
+.navbar {
+    background-color:rgba(0, 0, 0, 0.8) !important; /* Semi-transparent black */
+    padding: 10px 0;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* Navbar Hover Effect */
+.navbar:hover {
+    background-color: rgba(0, 0, 0, 0.8) !important; /* Darker on hover */
+}
+
+
+.navbar-brand .logo {
+    height: 50px;
+    width: auto;
+}
+
+/* Hero Section */
+.hero-section {
+    color: white;
+    margin-top: 150px;
+    text-align: center;
+}
+
+.hero-section h1 {
+    font-size: 2.5rem;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+}
+
+/* Custom Button */
+.btn-custom {
+    background: #1a6bf9;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 18px;
+    transition: background 0.3s ease;
+}
+
+.btn-custom:hover {
+    background: #004ecb;
+}
+
+/* Feature Cards 
+.features-section {
+    margin-top: 50px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    margin-top: 20px;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}*/
+
+
+/* Feature Cards */
+.features-section {
+    margin-top: 50px;
+    display: flex; /* Ensures all cards stay in one row */
+    justify-content: space-between; /* Spacing between cards */
+    gap: 20px; /* Adjust spacing between cards */
+    flex-wrap: nowrap; /* Prevents cards from wrapping to the next line */
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    flex: 1; /* Ensures equal width for all cards */
+    transition: transform 0.3s ease, background 0.3s ease;
+    max-width: 25%; /* Prevents cards from becoming too large */
+}
+
+.feature-card:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* Ensure responsiveness for smaller screens */
+@media (max-width: 992px) {
+    .features-section {
+        flex-wrap: wrap; /* Allows wrapping on smaller screens */
+    }
+
+    .feature-card {
+        max-width: 48%; /* 2 cards per row on medium screens */
+    }
+}
+
+@media (max-width: 600px) {
+    .feature-card {
+        max-width: 100%; /* 1 card per row on small screens */
+    }
+}
+
+
+
+
+/* Footer */
+.footer {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 15px;
+    text-align: center;
+    color: white;
+    margin-top: 30px;
+}
+
+
+
+/* Common Diseases Page Styling */
+.disease-card {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+    margin-bottom: 20px;
+
+    
+}
+
+.disease-card:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.disease-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}

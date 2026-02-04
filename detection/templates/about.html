@@ -1,0 +1,349 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Skin Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="{% static 'css/js/images/logo.png' %}">
+    <style>
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
+            z-index: -1;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            transition: all 0.4s ease;
+            z-index: 50;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .nav-link {
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 70%;
+        }
+        .team-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 100%;
+        }
+        .team-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(59, 130, 246, 0.5);
+            transition: all 0.3s ease;
+            margin: 0 auto 20px;
+        }
+        .team-card:hover .profile-pic {
+            transform: scale(1.05);
+            border-color: rgba(59, 130, 246, 0.8);
+        }
+        .role-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 10px 0;
+        }
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 10px 0;
+        }
+        .education {
+            font-size: 0.9rem;
+            color: #d1d5db;
+            margin-top: 10px;
+        }
+        .social-links {
+            margin-top: 15px;
+        }
+        .social-links a {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        .social-links a:hover {
+            background: #3b82f6;
+            transform: translateY(-3px);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo/Brand -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'home' %}" class="flex items-center group">
+                        <img src="{% static 'css/js/images/logo.png' %}" alt="Logo" class="h-10 mr-3 transition-transform duration-300 group-hover:rotate-12">
+                        <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            DermaScan
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{% url 'home' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        Home
+                    </a>
+                    <a href="{% url 'common_diseases' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        Common Diseases
+                    </a>
+                    <a href="{% url 'about' %}" class="nav-link text-blue-300 transition-colors duration-300">
+                        About
+                    </a>
+                    <a href="{% url 'contact' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+                        Contact
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="mobile-menu md:hidden bg-gray-900 bg-opacity-90">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="{% url 'home' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">Home</a>
+                <a href="{% url 'common_diseases' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">Common Diseases</a>
+                <a href="{% url 'about' %}" class="block px-3 py-3 rounded-md text-base font-medium text-blue-400 bg-gray-800">About</a>
+                <a href="{% url 'contact' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- About Us Section -->
+    <section class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 text-white">Meet Our Team</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    A passionate group of Computer Engineering students revolutionizing skin disease detection with AI
+                </p>
+            </div>
+    
+            <!-- Guide Section -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 text-white">Our Guide</h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    The mentor who guided us through this project
+                </p>
+            </div>
+
+            <div class="flex justify-center">
+                <div class="team-card max-w-md">
+                    <img src="https://img.freepik.com/free-vector/professor-concept-illustration_114360-4226.jpg" alt="Prof. A. S. Salavi (Kumbhar)" class="profile-pic floating" style="animation-delay: 0.8s">
+                    <h3 class="text-2xl font-semibold text-white">Prof. A. S. Salavi (Kumbhar)</h3>
+                    <div class="guide-badge">Project Guide</div>
+                    <p class="text-gray-300">Provided expert guidance and technical direction for the project</p>
+                    <div class="education">
+                        <i class="fas fa-university mr-2"></i>
+                         Professor<br>
+                        Department of Computer Engineering<br>
+                        DKTE's Yashwantrao Chavan Polytechnic, Ichalkaranji
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                        <a href="#"><i class="fas fa-globe"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                <!-- Team Member 1 -->
+                <div class="team-card">
+                    <img src="https://img.freepik.com/free-vector/businesswoman-character-avatar-isolated_24877-60111.jpg" alt="Anjali Patil" class="profile-pic floating">
+                    <h3 class="text-2xl font-semibold text-white">Anjali Patil</h3>
+                    <div class="role-badge">Documentation Specialist</div>
+                    <p class="text-gray-300">Responsible for project documentation and research coordination</p>
+                    <div class="education">
+                        <i class="fas fa-graduation-cap mr-2"></i>
+                        Computer Science & Engineering<br>
+                        DKTE's Yashwantrao Chavan Polytechnic, Ichalkaranji
+                        <br>
+                        Third Year
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Team Member 2 -->
+                <div class="team-card">
+                    <img src="https://img.freepik.com/free-vector/programmer-working-web-development-code-engineer-programming-php-javascript-sql-python-html-java-coding-developer-project_335657-2415.jpg" alt="Shreeniket Kusanale" class="profile-pic floating" style="animation-delay: 0.2s">
+                    <h3 class="text-2xl font-semibold text-white">Shreeniket Kusanale</h3>
+                    <div class="role-badge">Frontend Developer</div>
+                    <p class="text-gray-300">Designed and implemented the user interface and experience</p>
+                    <div class="education">
+                        <i class="fas fa-graduation-cap mr-2"></i>
+                        Computer Science & Engineering<br>
+                        DKTE's Yashwantrao Chavan Polytechnic, Ichalkaranji
+                        <br>
+                        Third Year
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Team Member 3 -->
+                <div class="team-card">
+                    <img src="https://img.freepik.com/free-vector/scientist-character-avatar-isolated_24877-60112.jpg" alt="Rutuja Mane" class="profile-pic floating" style="animation-delay: 0.4s">
+                    <h3 class="text-2xl font-semibold text-white">Rutuja Mane</h3>
+                    <div class="role-badge">Research Specialist</div>
+                    <p class="text-gray-300">Conducted disease research and data analysis for the AI model</p>
+                    <div class="education">
+                        <i class="fas fa-graduation-cap mr-2"></i>
+                        Computer Science & Engineering<br>
+                        DKTE's Yashwantrao Chavan Polytechnic, Ichalkaranji
+                        <br>
+                        Third Year
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Team Member 4 -->
+                <div class="team-card">
+                    <img src="https://img.freepik.com/free-vector/programmer-concept-illustration_114360-2417.jpg" alt="Prithviraj Patil" class="profile-pic floating" style="animation-delay: 0.6s">
+                    <h3 class="text-2xl font-semibold text-white">Prithviraj Patil</h3>
+                    <div class="role-badge">Full Stack Developer</div>
+                    <p class="text-gray-300">Handled backend development and AI model integration</p>
+                    <div class="education">
+                        <i class="fas fa-graduation-cap mr-2"></i>
+                        Computer Science & Engineering<br>
+                        DKTE's Yashwantrao Chavan Polytechnic, Ichalkaranji
+<br>
+                        Third Year
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
+            mobileMenu.classList.toggle('active');
+            
+            // Toggle icon
+            if (!expanded) {
+                this.innerHTML = `
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                `;
+            } else {
+                this.innerHTML = `
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

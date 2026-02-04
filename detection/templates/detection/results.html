@@ -1,0 +1,723 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Results - DermaScan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="{% static 'css/js/images/logo.png' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
+            z-index: -1;
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            transition: all 0.4s ease;
+            z-index: 50;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        }
+        .info-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .info-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .top-disease {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border-left: 4px solid #3b82f6;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        .confidence-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Video Background -->
+    <video autoplay muted loop id="bg-video">
+        <source src="{% static 'videos/background.mp4' %}" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo/Brand -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'home' %}" class="flex items-center group">
+                        <img src="{% static 'css/js/images/logo.png' %}" alt="Logo" class="h-10 mr-3 transition-transform duration-300 group-hover:rotate-12">
+                        <span class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                            DermaScan
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-1">
+                 <a href="{% url 'common_diseases' %}" class="nav-link text-white hover:text-blue-300 transition-colors duration-300">
+      Common Diseases
+                  </a>
+                  <a href="{% url 'home' %}" class="logout-btn flex items-center px-4 py-2 rounded-full text-red-400 hover:text-white ml-4">
+                      <i class="fas fa-sign-out-alt mr-2"></i>
+                     Logout
+                  </a>
+                </div>
+
+                <!-- Mobile Menu -->
+              <div class="mobile-menu md:hidden bg-gray-900 bg-opacity-90">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="{% url 'common_diseases' %}" class="block px-3 py-3 rounded-md text-base font-medium text-white hover:bg-gray-800">
+                          Common Diseases
+                    </a>
+                    <a href="{% url 'home' %}" class="block px-3 py-3 rounded-md text-base font-medium text-red-400 hover:bg-gray-800">
+                          Logout
+                   </a>
+                </div>
+              </div>
+                
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">Detection Results</h1>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                AI-powered analysis of your skin condition
+            </p>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Patient Information -->
+            <div class="result-card p-6">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-600/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-user text-blue-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-white">Patient Information</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="info-item p-4 rounded-lg">
+                        <p class="text-sm text-gray-400">Full Name</p>
+                        <p class="text-lg font-medium text-white">{{ name }}</p>
+                    </div>
+                    
+                    <div class="info-item p-4 rounded-lg">
+                        <p class="text-sm text-gray-400">Date of Birth</p>
+                        <p class="text-lg font-medium text-white">{{ dob }}</p>
+                    </div>
+                    
+                    <div class="info-item p-4 rounded-lg">
+                        <p class="text-sm text-gray-400">Gender</p>
+                        <p class="text-lg font-medium text-white">{{ gender }}</p>
+                    </div>
+                    
+                    <div class="info-item p-4 rounded-lg">
+                        <p class="text-sm text-gray-400">Contact</p>
+                        <p class="text-lg font-medium text-white">{{ contact }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Uploaded Image -->
+            <div class="result-card p-6">
+                <div class="flex items-center mb-6">
+                    <div class="bg-purple-600/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-image text-purple-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-white">Medical Image</h2>
+                </div>
+                
+                <div class="flex flex-col items-center justify-center h-full">
+                    <img src="{{ uploaded_image_url }}" alt="Uploaded Image" class="rounded-xl border-2 border-white/20 w-full h-auto max-h-64 object-contain floating">
+                    <p class="text-gray-400 text-sm mt-4">Uploaded image for analysis</p>
+                </div>
+            </div>
+
+            <!-- Top Prediction -->
+            <div class="result-card p-6 top-disease">
+                <div class="flex items-center mb-6">
+                    <div class="bg-green-600/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-diagnoses text-green-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-white">Prediction Result</h2>
+                </div>
+                
+                <div class="text-center py-4">
+                    {% comment %} <div class="text-4xl font-bold text-white mb-2">{{ predicted_disease|default:"N/A cut:" "|cut:"."|cut:"1"|cut:"2"|cut:"3"|cut:"4"|cut:"5"|cut:"6"|cut:"7"|cut:"8"|cut:"9"|cut:"0"" }}</div> {% endcomment %}
+                    <div class="text-4xl font-bold text-white mb-2">
+                      {% with cleaned=predicted_disease|cut:"."|cut:"1"|cut:"2"|cut:"3"|cut:"4"|cut:"5"|cut:"6"|cut:"7"|cut:"8"|cut:"9"|cut:"0" %}
+                          {{ cleaned|default:"N/A" }}
+                      {% endwith %}
+                  </div>                   
+                    <div class="confidence-badge inline-block text-lg mb-4">{{ prediction_confidence|default:"N/A" }} Confidence
+                            
+                      
+                    </div>
+                    
+                    <div class="bg-white/5 p-4 rounded-lg border border-white/10 text-left">
+                        <h3 class="text-lg font-semibold text-white mb-2">Key Characteristics:</h3>
+                        <ul class="list-disc list-inside text-gray-300 space-y-1">
+                          {% if "Eczema" in predicted_disease %}
+                              <li>Dry, itchy skin patches</li>
+                              <li>Red or brownish-gray patches</li>
+                              <li>Small, raised bumps</li>
+                          {% elif "Warts Molluscum" in predicted_disease %}
+                              <li>Small, flesh-colored bumps</li>
+                              <li>Pearl-like appearance with central dimple</li>
+                              <li>May appear in clusters</li>
+                          {% elif "Melanoma" in predicted_disease %}
+                              <li>Asymmetrical shape</li>
+                              <li>Irregular borders</li>
+                              <li>Varied coloration</li>
+                          {% elif "Atopic Dermatitis" in predicted_disease %}
+                              <li>Dry, scaly patches</li>
+                              <li>Intense itching</li>
+                              <li>Red to brownish-gray patches</li>
+                          {% elif "Basal Cell Carcinoma" in predicted_disease %}
+                              <li>Pearly or waxy bump</li>
+                              <li>Flat, flesh-colored lesion</li>
+                              <li>Bleeding or scabbing sore</li>
+                          {% elif "Melanocytic Nevi" in predicted_disease %}
+                              <li>Round or oval shape</li>
+                              <li>Uniform color</li>
+                              <li>Distinct borders</li>
+                          {% elif "Benign Keratosis" in predicted_disease %}
+                              <li>Waxy, stuck-on appearance</li>
+                              <li>Tan, brown or black color</li>
+                              <li>Slightly raised lesions</li>
+                          {% elif "Psoriasis" in predicted_disease %}
+                              <li>Red patches with silvery scales</li>
+                              <li>Dry, cracked skin that may bleed</li>
+                              <li>Itching or burning sensation</li>
+                          {% elif "Seborrheic Keratoses" in predicted_disease %}
+                              <li>Brown, black or light tan growths</li>
+                              <li>Waxy, scaly, slightly elevated appearance</li>
+                              <li>Range from small to more than 1 inch</li>
+                          {% elif "Tinea Ringworm" in predicted_disease %}
+                              <li>Ring-shaped rash</li>
+                              <li>Red, scaly patches</li>
+                              <li>Itchy, inflamed skin</li>
+                          {% else %}
+                              <li>Consult a dermatologist for detailed characteristics</li>
+                          {% endif %}
+                      </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Analysis -->
+        {% comment %} <div class="result-card p-6 mb-12">
+            <div class="flex items-center mb-6">
+                <div class="bg-yellow-600/20 p-3 rounded-full mr-4">
+                    <i class="fas fa-chart-bar text-yellow-400 text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-white">Prediction Analysis</h2>
+            </div>
+            
+            <div class="chart-container p-4">
+                <canvas id="diseaseChart" height="400"></canvas>
+            </div>
+        </div> {% endcomment %}
+        <div class="result-card p-6 mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <div class="bg-yellow-600/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-chart-bar text-yellow-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-white">Prediction Analysis</h2>
+                </div>
+                
+                <!-- Chart Type Selector -->
+                <div class="flex space-x-2">
+                    <button onclick="changeChartType('bar')" class="chart-type-btn bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-md transition" data-type="bar">
+                        <i class="fas fa-chart-bar mr-1"></i> Bar
+                    </button>
+                    <button onclick="changeChartType('line')" class="chart-type-btn bg-transparent hover:bg-white/10 text-white px-3 py-1 rounded-md transition" data-type="line">
+                        <i class="fas fa-chart-line mr-1"></i> Line
+                    </button>
+                    <button onclick="changeChartType('pie')" class="chart-type-btn bg-transparent hover:bg-white/10 text-white px-3 py-1 rounded-md transition" data-type="pie">
+                        <i class="fas fa-chart-pie mr-1"></i> Pie
+                    </button>
+                    <button onclick="changeChartType('doughnut')" class="chart-type-btn bg-transparent hover:bg-white/10 text-white px-3 py-1 rounded-md transition" data-type="doughnut">
+                        <i class="fas fa-chart-doughnut mr-1"></i> Doughnut
+                    </button>
+                    <button onclick="changeChartType('radar')" class="chart-type-btn bg-transparent hover:bg-white/10 text-white px-3 py-1 rounded-md transition" data-type="radar">
+                        <i class="fas fa-chart-radar mr-1"></i> Radar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chart-container p-4">
+                <canvas id="diseaseChart" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Recommended Actions -->
+        <div class="result-card p-6 mb-12">
+            <div class="flex items-center mb-6">
+                <div class="bg-red-600/20 p-3 rounded-full mr-4">
+                    <i class="fas fa-heartbeat text-red-400 text-xl"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-white">Recommended Actions</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white/5 p-6 rounded-lg border border-white/10">
+                    <h3 class="text-xl font-semibold text-white mb-3 flex items-center">
+                        <i class="fas fa-procedures mr-2 text-blue-400"></i>
+                        Medical Recommendations
+                    </h3>
+                    <ul class="space-y-2 text-gray-300">
+                      {% if "Acne" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use non-comedogenic skincare products</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Consider topical treatments with benzoyl peroxide</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Consult a dermatologist for persistent cases</span>
+                          </li>
+                      {% elif "Eczema" in predicted_disease or "Atopic Dermatitis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use fragrance-free moisturizers regularly</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Apply topical corticosteroids for flare-ups</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Identify and avoid triggers</span>
+                          </li>
+                      {% elif "Melanoma" in predicted_disease or "Basal Cell Carcinoma" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Schedule immediate consultation with a dermatologist</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Protect area from sun exposure</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Monitor for changes in size or color</span>
+                          </li>
+                      {% elif "Psoriasis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use medicated shampoos for scalp psoriasis</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Apply topical treatments with salicylic acid</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Consider phototherapy for severe cases</span>
+                          </li>
+                      {% elif "Tinea Ringworm" in predicted_disease or "Fungal Infections" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use antifungal creams as directed</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Keep affected area clean and dry</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid sharing personal items</span>
+                          </li>
+                      {% elif "Warts Molluscum" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Consider cryotherapy treatment</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid picking or scratching</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Practice good hand hygiene</span>
+                          </li>
+                      {% elif "Seborrheic Keratoses" in predicted_disease or "Benign Keratosis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Monitor for any changes in appearance</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Consider removal if irritated or for cosmetic reasons</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Protect from excessive sun exposure</span>
+                          </li>
+                      {% else %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Schedule an appointment with a dermatologist</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Protect the affected area from irritation</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid scratching or picking at the skin</span>
+                          </li>
+                      {% endif %}
+                  </ul>
+                </div>
+                
+                <div class="bg-white/5 p-6 rounded-lg border border-white/10">
+                    <h3 class="text-xl font-semibold text-white mb-3 flex items-center">
+                        <i class="fas fa-home mr-2 text-purple-400"></i>
+                        Home Care
+                    </h3>
+                    <ul class="space-y-2 text-gray-300">
+                      {% if "Acne" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Gently cleanse skin twice daily</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid excessive scrubbing</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Keep hair clean and off the face</span>
+                          </li>
+                      {% elif "Eczema" in predicted_disease or "Atopic Dermatitis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Take short, lukewarm baths</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Apply moisturizer immediately after bathing</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use a humidifier in dry environments</span>
+                          </li>
+                      {% elif "Melanoma" in predicted_disease or "Basal Cell Carcinoma" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Protect area from sun with SPF 30+ sunscreen</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Wear protective clothing outdoors</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Monitor for changes in size or color</span>
+                          </li>
+                      {% elif "Psoriasis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Use lukewarm water for bathing</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Apply thick moisturizers after bathing</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Reduce stress through relaxation techniques</span>
+                          </li>
+                      {% elif "Tinea Ringworm" in predicted_disease or "Fungal Infections" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Keep affected areas dry and clean</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Change socks and underwear frequently</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid walking barefoot in public areas</span>
+                          </li>
+                      {% elif "Warts Molluscum" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Keep affected area covered</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid shaving over affected areas</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Don't share towels or personal items</span>
+                          </li>
+                      {% elif "Seborrheic Keratoses" in predicted_disease or "Benign Keratosis" in predicted_disease %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Protect from sun exposure</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Avoid picking or scratching</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Monitor for any changes</span>
+                          </li>
+                      {% else %}
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Keep skin moisturized</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Wear loose, breathable clothing</span>
+                          </li>
+                          <li class="flex items-start">
+                              <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                              <span>Manage stress levels</span>
+                          </li>
+                      {% endif %}
+                  </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row justify-center gap-6">
+            <a href="{% url 'generate_pdf' %}" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 text-center">
+                <i class="fas fa-file-pdf mr-2"></i> Download Full Report
+            </a>
+            {% comment %} <a href="{% url 'find_doctors' %}" class="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-medium py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 text-center">
+                <i class="fas fa-user-md mr-2"></i> Find Specialists
+            </a> {% endcomment %}
+        </div>
+
+        <!-- Disclaimer -->
+        {% comment %} <div class="text-center text-gray-400 text-sm mt-12">
+            <p>Report generated on {{ current_date }}. This AI analysis is for informational purposes only and should not replace professional medical advice.</p>
+        </div> {% endcomment %}
+    </div>
+
+    <script>
+        // Global chart variable
+        var diseaseChart;
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            initializeChart('bar');
+            
+            // Add event listeners to buttons (alternative to onclick attributes)
+            document.querySelectorAll('.chart-type-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const chartType = this.getAttribute('data-type');
+                    changeChartType(chartType);
+                });
+            });
+        });
+    
+        function initializeChart(chartType) {
+            var ctx = document.getElementById("diseaseChart").getContext("2d");
+            
+            var diseaseLabels = JSON.parse('{{ disease_labels|escapejs }}');
+            var diseaseProbabilities = JSON.parse('{{ predictions|escapejs }}');
+            
+            // Clean up the labels
+            var cleanedLabels = diseaseLabels.map(function(label) {
+                return label.replace(/^[\d.\s]+/, '')
+                           .replace(/\s*-.*$/, '')
+                           .replace(/\s*\d+$/, '')
+                           .trim();
+            });
+            
+            var colors = [
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(99, 102, 241, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(168, 85, 247, 0.7)',
+                'rgba(217, 70, 239, 0.7)',
+                'rgba(236, 72, 153, 0.7)',
+                'rgba(244, 63, 94, 0.7)'
+            ];
+            
+            var hoverColors = colors.map(color => color.replace('0.7', '0.9'));
+            
+            var diseaseData = {
+                labels: cleanedLabels,
+                datasets: [{
+                    label: "Probability (%)",
+                    data: diseaseProbabilities,
+                    backgroundColor: colors,
+                    borderColor: "rgba(255, 255, 255, 0.8)",
+                    borderWidth: 2,
+                    borderRadius: chartType === 'bar' ? 6 : 0,
+                    hoverBackgroundColor: hoverColors,
+                    hoverBorderColor: 'white',
+                    hoverBorderWidth: 3
+                }]
+            };
+            
+            var commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: { 
+                        display: chartType !== 'bar' && chartType !== 'line',
+                        labels: { 
+                            color: "white",
+                            font: {
+                                size: 14
+                            }
+                        } 
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(238, 20, 64, 0.2)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.parsed?.y?.toFixed(2) || context.raw?.toFixed(2) || '0'}% probability`;
+                            },
+                            title: function(context) {
+                                return cleanedLabels[context[0].dataIndex];
+                            }
+                        }
+                    }
+                },
+                scales: chartType !== 'pie' && chartType !== 'doughnut' && chartType !== 'radar' ? {
+                    x: { 
+                        ticks: { 
+                            color: "white",
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: { 
+                        ticks: { 
+                            color: "white",
+                            font: {
+                                weight: 'bold'
+                            }
+                        }, 
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                } : {}
+            };
+            
+            // Destroy existing chart if it exists
+            if (diseaseChart) {
+                diseaseChart.destroy();
+            }
+            
+            // Create new chart
+            diseaseChart = new Chart(ctx, {
+                type: chartType,
+                data: diseaseData,
+                options: commonOptions
+            });
+            
+            // Update button styles
+            updateActiveButton(chartType);
+        }
+        
+        function changeChartType(chartType) {
+            initializeChart(chartType);
+        }
+        
+        function updateActiveButton(activeType) {
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                if (btn.dataset.type === activeType) {
+                    btn.classList.remove('bg-transparent');
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                } else {
+                    btn.classList.add('bg-transparent');
+                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                }
+            });
+        }
+    </script>   
+</body>

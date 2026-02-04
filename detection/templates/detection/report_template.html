@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Skin Disease Report</title>
+  <style>
+    body { font-family: Arial; margin: 0.3in; font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #000; padding: 5px; }
+    th { background-color: #f2f2f2; }
+    .highlight { background-color: #fffacd; font-weight: bold; }
+    .small-image { width: 200px; height: auto; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h2 style="text-align: center;">Skin Disease Diagnosis Report</h2>
+  
+  <table>
+    <tr><th colspan="2">Patient Information</th></tr>
+    <tr><td>Name:</td><td>{{ name }}</td></tr>
+    <tr><td>Date of Birth:</td><td>{{ dob }}</td></tr>
+    <tr><td>Gender:</td><td>{{ gender }}</td></tr>
+    <tr><td>Contact:</td><td>{{ contact }}</td></tr>
+    <tr><td>
+    <center>
+      {% if uploaded_image_base64 %}
+      <div class="image-container">
+        <img src="data:image/jpeg;base64,{{ uploaded_image_base64 }}" class="small-image">
+        <p style="margin-top: 8px; font-size: 9pt; color: #6c757d;">Affected Area</p>
+      </div>
+      {% endif %}
+    </center>
+    </td></tr>
+ </table>
+
+  <table>
+    <tr><th colspan="2">Diagnosis Results</th></tr>
+    <tr><th>Disease</th><th>Probability</th></tr>
+    {% for label, prob in disease_data %}
+    <tr {% if label == predicted_disease %}class="highlight"{% endif %}>
+      <td>{{ label }}</td>
+      <td>{{ prob|floatformat:2 }}%</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
